@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import jwt from 'jsonwebtoken'
+import jwt from "jsonwebtoken"
 import bycrpt from 'bcrypt'
 
 const userSchema = new mongoose.Schema({
@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema({
         trim: true,
         index: true
     },
-    username: {
+    email: {
         type: String,
         required: true,
         unique: true,
@@ -46,9 +46,10 @@ const userSchema = new mongoose.Schema({
 
 // a hook which before saving the password encryptes the password for safety
 userSchema.pre('save', async function (next) {     //can't use arrow functions because it doesn't have the refernce of the keyword 'this'
+    
     if (!this.isModified('password')) return next()
 
-    this.password = bycrpt.hash(this.password, 11)
+    this.password = await bycrpt.hash(this.password, 11)
     next()
 })
 
