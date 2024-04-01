@@ -19,10 +19,11 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiError(400,'Invalid Email')
     }
 
-    const existedUser = User.findOne({
+    const existedUser = await User.findOne({
         $or: [{username},{email}]
     })
 
+    console.log(req.files)
     if(existedUser)
     {
        throw new ApiError(409,'Already an existing account') 
@@ -30,8 +31,21 @@ const registerUser = asyncHandler(async (req, res) => {
 
     // files to upload i.e. coverImage and avatar image
     // files are received in req.files
-    const avatarLocalPath = req.files?.avatar[0]?.path // multer acts as a middleware which is used to receive files from the client
-    const coverImagePath = req.files?.coverImage[0].path
+
+    // multer acts as a middleware which is used to receive files from the client
+    // const avatarLocalPath = req.files?.avatar[0]?.path 
+
+    let avatarLocalPath
+    if(req.files && Array.isArray(req.files.avatar) && req.files.avatar.length > 0)
+    {
+        avatarLocalPath = req.files.avatar[0].path
+    }
+    // const coverImagePath = req.files?.coverImage[0]?.path
+
+    let coverImageLocalPath;
+    if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
+        coverImageLocalPath = req.files.coverImage[0].path
+    }
 
     if(!avatarLocalPath)
     {
@@ -39,7 +53,7 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     const avatar = await uploadFileOnCloudinary(avatarLocalPath)
-    const coverImage = await uploadFileOnCloudinary(coverImagePath)
+    const coverImage = await uploadFileOnCloudinary(coverImageLocalPath)
 
     if(!avatar)
     {
@@ -51,8 +65,9 @@ const registerUser = asyncHandler(async (req, res) => {
     const user = await User.create({
         fullName,
         avatar : avatar.url,
-        coverImage: coverImage?.url || '',
+        coverImage: (coverImage)?.url || "",
         email,
+        password,
         username: username.toLowerCase()
     })
  // validating data stored in DB
@@ -65,4 +80,6 @@ const registerUser = asyncHandler(async (req, res) => {
     )
 }
 )
+
+
 export { registerUser }
