@@ -7,6 +7,8 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 const registerUser = asyncHandler(async (req, res) => {
     // receiving user info
 
+    // console.log(req.body)
+    // console.log(req.files)
     const { fullName, email, username, password } = req.body
     // console.log(`email: ${email}`);
 
@@ -23,7 +25,6 @@ const registerUser = asyncHandler(async (req, res) => {
         $or: [{username},{email}]
     })
 
-    console.log(req.files)
     if(existedUser)
     {
        throw new ApiError(409,'Already an existing account') 
@@ -54,18 +55,22 @@ const registerUser = asyncHandler(async (req, res) => {
 
     const avatar = await uploadFileOnCloudinary(avatarLocalPath)
     const coverImage = await uploadFileOnCloudinary(coverImageLocalPath)
+    // if(!coverImage)
+    // {
+    //     throw new ApiError(400,'CoverImage image required!')
+    // }
 
-    if(!avatar)
-    {
-        throw new ApiError(400,'Avatar image required!')
-    }
+    // if(!avatar)
+    // {
+    //     throw new ApiError(400,'Avatar image required!')
+    // }
 
     //storing in database
 
     const user = await User.create({
         fullName,
-        avatar : avatar.url,
-        coverImage: (coverImage)?.url || "",
+        avatar : avatar?.url || "",
+        coverImage: coverImage?.url || "",
         email,
         password,
         username: username.toLowerCase()
